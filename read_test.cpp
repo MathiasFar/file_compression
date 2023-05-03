@@ -1,17 +1,35 @@
 #include <iostream>
+#include <vector>
 #include <fstream>
+#include <memory>
+
+
+struct Node {
+    int freq;
+    std::string chr;
+    std::shared_ptr<Node> left, right;
+};
+
 
 int main() {
 
+    FILE *file = fopen("compressed.bin", "rb");
+    std::vector<Node> nodes;
 
-    std::ifstream file ("test.7z", std::ios::binary);
+    size_t size;
+    fread(&size, sizeof(size_t), 1, file);
 
-    std::string s;
 
-    file.read((char *)&s, 500);
-    file.close();
+    nodes.resize(size);
+    for(auto &node : nodes) {
+        fread(&node, sizeof(node), 1, file);
+    }
+    fclose(file);
 
-    std::cout<<s<<std::endl;
+    for(auto &e : nodes) {
+        std::cout<<e.chr<<std::endl;
+    }
+
 
     return 0;
 }

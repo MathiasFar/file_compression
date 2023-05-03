@@ -20,7 +20,8 @@ private:
     std::shared_ptr<Node> generateTree(std::vector<std::shared_ptr<Node>> pq);
     void generateCodes(std::shared_ptr<Node> &node, std::string code, std::unordered_map<std::string, std::string> &m);
     void writeCompressedFile(std::shared_ptr<Huffman::Node> root, std::string data, std::unordered_map<std::string, std::string> codes);
-    void writeStream(std::shared_ptr<Huffman::Node> root, std::vector<std::string> &vTree);
+    void writeStream(std::shared_ptr<Huffman::Node> root, std::vector<std::shared_ptr<Huffman::Node>> &nodes);
+    void readData();
 };
 
 std::unordered_map<std::string, std::string> Huffman::encode(std::string data) {
@@ -89,33 +90,65 @@ std::shared_ptr<Huffman::Node> Huffman::generateTree(std::vector<std::shared_ptr
 void Huffman::writeCompressedFile(std::shared_ptr<Huffman::Node> root, std::string data, std::unordered_map<std::string, std::string> codes) {
     std::string content;
     // write compressed data
-    std::ofstream file("compressed.theus", std::ios::binary);
-        
+    FILE *file = fopen("compressed.bin", "wb");
+     
+    std::string temp;
     for(auto &ch : data) {
-        /* file.write((const char *)&asdf, asdf.size()); */
-        file.write((const char *)&codes[std::string(1, ch)], codes.size());
+        temp += codes[std::string(1, ch)]
+    }
+    
+    size_t dataSize = temp.size();
+    fwrite(&dataSize, sizeof(size_t), 1, file);
+
+    for(auto &ch : data) {
+        file.write((char *)&, 1);
+        fwrite(&codes[std::string(1, ch)], sizeof(codes[std::string(1, ch)]), 1, file);
     }
 
     // write binary tree to stream
-    /* content += "!-!"; */
-    std::vector<std::string> shit;
-    writeStream(root, shit);
-    /* content += "!-!"; */
+    std::vector<std::shared_ptr<Huffman::Node>> nodes;
+    writeStream(root, nodes);
+    size_t nodeCount = nodes.size();
+    fwrite(&nodeCount, sizeof(size_t), 1, file);
 
-    /* std::ofstream file("compressed.theus"); */
-    /* std::string asdf = "hello"; */
-    file.write((const char *)&NULL, 1);
-    file.write((const char *)&shit, shit.size());
-    file.close();
+    for(const auto& node : nodes) {
+        fwrite(&node, sizeof(node), 1, file);
+    }
+    fclose(file);
+    readBytes();
 }
-void Huffman::writeStream(std::shared_ptr<Huffman::Node> root, std::vector<std::string> &vTree) {
+void Huffman::writeStream(std::shared_ptr<Huffman::Node> root, std::vector<std::shared_ptr<Huffman::Node>> &nodes) {
     if(root == NULL) return;
 
-    for(auto &e : root->chr) {
-        vTree.push_back(std::string(1, e));
-    }
+    nodes.push_back(root);
     
-    writeStream(root->left, vTree);
-    writeStream(root->right, vTree);
+    writeStream(root->left, nodes);
+    writeStream(root->right, nodes);
+}
+
+void Huffman::readData() {
+    FILE *file = fopen("compressed.bin", "rb");
+    std::vector<std::shared_ptr<Huffman::Node>> nodes;
+
+    // Reads compressed data
+    
+    size_t dataSize;
+    fread(&dataSize, sizeof(size_t), 1, file);
+
+
+
+    // Reads huffman tree
+
+    size_t nodeCount;
+    fread(&nodeCount, sizeof(size_t), 1, file);
+
+    nodes.resize(nodeCount);
+    for(auto &node : nodes) {
+        fread(&node, sizeof(node), 1, file);
+    }
+
+    for(auto &node : nodes) {
+        std::cout<<node->chr<<std::endl;
+    }
 }
 
