@@ -94,16 +94,14 @@ void Huffman::writeCompressedFile(std::shared_ptr<Huffman::Node> root, std::stri
      
     std::string temp;
     for(auto &ch : data) {
-        temp += codes[std::string(1, ch)]
+        temp += codes[std::string(1, ch)];
     }
     
     size_t dataSize = temp.size();
     fwrite(&dataSize, sizeof(size_t), 1, file);
+    /* std::cout<<dataSize<<std::endl; */
 
-    for(auto &ch : data) {
-        file.write((char *)&, 1);
-        fwrite(&codes[std::string(1, ch)], sizeof(codes[std::string(1, ch)]), 1, file);
-    }
+    fwrite(&temp, sizeof(temp), 1, file);
 
     // write binary tree to stream
     std::vector<std::shared_ptr<Huffman::Node>> nodes;
@@ -115,7 +113,7 @@ void Huffman::writeCompressedFile(std::shared_ptr<Huffman::Node> root, std::stri
         fwrite(&node, sizeof(node), 1, file);
     }
     fclose(file);
-    readBytes();
+    readData();
 }
 void Huffman::writeStream(std::shared_ptr<Huffman::Node> root, std::vector<std::shared_ptr<Huffman::Node>> &nodes) {
     if(root == NULL) return;
@@ -134,6 +132,11 @@ void Huffman::readData() {
     
     size_t dataSize;
     fread(&dataSize, sizeof(size_t), 1, file);
+    /* std::cout<<dataSize<<std::endl; */
+
+    std::string data;
+    fread(&data, sizeof(std::string(dataSize, ' ')), 1, file);
+    std::cout<<data<<std::endl;
 
 
 
@@ -149,6 +152,8 @@ void Huffman::readData() {
 
     for(auto &node : nodes) {
         std::cout<<node->chr<<std::endl;
-    }
+    }   
+
 }
+
 
